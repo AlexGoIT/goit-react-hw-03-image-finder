@@ -19,6 +19,7 @@ export default class App extends Component {
     isLoading: false,
     showLoadMoreBtn: false,
     showModal: false,
+    largeImageURL: '',
   };
 
   // componentDidMount() {
@@ -85,16 +86,30 @@ export default class App extends Component {
   //   this.setState({ showLoadMoreBtn: !showLoadMoreBtn });
   // };
 
+  handleImageClick = largeImageURL => {
+    this.setState({ largeImageURL, showModal: true });
+  };
+
+  handleCloseModal = () => {
+    this.setState({ showModal: false });
+  };
+
   render() {
     const { hits, isLoading, showModal } = this.state;
 
     return (
       <Container>
         <Searchbar onSearchQuery={this.handleSearchQuery} />
-        {hits.length > 0 && <ImageGallery hits={hits} />}
+        {hits.length > 0 && (
+          <ImageGallery hits={hits} onImageClick={this.handleImageClick} />
+        )}
         <Button onLoadMore={this.handleLoadMore}>Load More</Button>
         {isLoading && <Loader />}
-        {showModal && <Modal>Hello</Modal>}
+        {showModal && (
+          <Modal onCloseModal={this.handleCloseModal}>
+            <img src={this.state.largeImageURL} alt="" />
+          </Modal>
+        )}
       </Container>
     );
   }
