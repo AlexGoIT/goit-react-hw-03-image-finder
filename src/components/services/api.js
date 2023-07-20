@@ -11,14 +11,12 @@ export default class ImageAPI {
   getImages = async (searchQuery, page) => {
     const params = {
       params: {
-        q: searchQuery ? searchQuery : '',
+        q: searchQuery,
         key: this.#KEY,
         image_type: 'photo',
         orientation: 'horizontal',
-        safesearch: false,
         per_page: 12,
-        page: page ? page : 1,
-        timeout: 1000,
+        page,
       },
     };
 

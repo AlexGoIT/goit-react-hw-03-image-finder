@@ -1,114 +1,125 @@
 import { Component } from 'react';
-import { Container } from './App.styled';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
+import { Container } from './App.styled';
 import Searchbar from './Searchbar';
 import ImageGallery from './ImageGallery';
 import Loader from './Loader';
-import Modal from './Modal';
 import Button from './Button';
 
 import ImageAPI from './services/api';
 const imageAPI = new ImageAPI();
+
+document.title = 'HW-3 Finder';
 
 export default class App extends Component {
   state = {
     hits: [],
     page: 1,
     totalPages: 1,
-    searchQuery: '',
+    searchQuery: null,
     isLoading: false,
     showLoadMoreBtn: false,
-    showModal: false,
-    largeImageURL: '',
   };
 
-  // componentDidMount() {
-  //   this.fetchImages();
-  // }
+  async componentDidUpdate(_, prevState) {
+    const { searchQuery, page, totalPages, hits } = this.state;
 
-  componentDidUpdate(prevProps, prevState) {
-    const { searchQuery, page } = this.state;
+    if (prevState.page !== page && page !== 1) {
+      this.setState({ isLoading: true });
 
-    if (prevState.searchQuery !== searchQuery || prevState.page !== page) {
-      this.fetchImages();
+      const response = await imageAPI.getImages(searchQuery, page);
+
+      this.setState(({ hits }) => ({
+        hits: [...hits, ...response.hits],
+        isLoading: false,
+      }));
+
+      setTimeout(() => this.scroll(), 100);
     }
-  }
 
-  fetchImages = async () => {
-    this.setState({ isLoading: true });
-
-    try {
-      const images = await imageAPI.getImages(
-        this.state.searchQuery,
-        this.state.page
+    if (page >= totalPages && hits !== prevState.hits) {
+      Notify.warning(
+        "We're sorry, but you've reached the end of search results."
       );
 
-      const { hits, totalHits } = images;
-      const totalPages = Math.ceil(totalHits / 12);
-
-      // if (totalPages > 1) {
-      //   this.setState({ showLoadMoreBtn: true });
-      // }
-
-      // this.setState({ hits, totalPages });
-
-      this.setState(prevState => {
-        return { hits: [...prevState.hits, ...hits], totalPages };
-      });
-    } catch (error) {
-      this.setState({ error });
-    } finally {
-      this.setState({ isLoading: false });
+      this.setState({ showLoadMoreBtn: false });
     }
-  };
+  }
 
   handleSearchQuery = searchQuery => {
     this.setState({ searchQuery, page: 1 });
   };
 
   handleLoadMore = () => {
-    this.setState(prevState => {
-      if (prevState.page < this.state.totalPages) {
-        return { page: prevState.page + 1 };
-      } else {
-        console.log('Not images');
-      }
-    });
+    this.setState(prevState => ({
+      page: prevState.page + 1,
+    }));
+  };
 
-    if (this.state.page >= this.state.totalPages) {
-      this.setState({ showLoadMoreBtn: false });
+  handleSubmit = async e => {
+    e.preventDefault();
+
+    const { queryInput } = e.target.elements;
+
+    const searchQuery = queryInput.value.trim();
+    queryInput.value = '';
+    const page = 1;
+
+    if (searchQuery === '') {
+      Notify.warning("You didn't enter anything!");
+      return;
     }
+
+    this.setState({ isLoading: true });
+    const response = await imageAPI.getImages(searchQuery, page);
+    this.setState({ isLoading: false });
+
+    if (response.hits.length === 0) {
+      Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+      return;
+    } else {
+      Notify.success(`"Hooray! We found ${response.totalHits} images."`);
+    }
+
+    const totalPages = Math.floor(response.totalHits / 12);
+
+    if (totalPages > 1) {
+      this.setState({ showLoadMoreBtn: true });
+    }
+
+    this.setState({
+      hits: response.hits,
+      searchQuery,
+      page,
+      totalPages,
+    });
   };
 
-  // toggleLoadMoreBtn = () => {
-  //   const { showLoadMoreBtn } = this.state;
-
-  //   this.setState({ showLoadMoreBtn: !showLoadMoreBtn });
-  // };
-
-  handleImageClick = largeImageURL => {
-    this.setState({ largeImageURL, showModal: true });
-  };
-
-  handleCloseModal = () => {
-    this.setState({ showModal: false });
+  scroll = () => {
+    const { clientHeight } = document.documentElement;
+    window.scrollBy({
+      top: clientHeight - 180,
+      behavior: 'smooth',
+    });
   };
 
   render() {
-    const { hits, isLoading, showModal } = this.state;
+    const { hits, isLoading, totalPages, page } = this.state;
+    const isNotEmpty = hits.length !== 0;
+    const isNotEndList = page < totalPages;
 
     return (
       <Container>
-        <Searchbar onSearchQuery={this.handleSearchQuery} />
-        {hits.length > 0 && (
-          <ImageGallery hits={hits} onImageClick={this.handleImageClick} />
-        )}
-        <Button onLoadMore={this.handleLoadMore}>Load More</Button>
-        {isLoading && <Loader />}
-        {showModal && (
-          <Modal onCloseModal={this.handleCloseModal}>
-            <img src={this.state.largeImageURL} alt="" />
-          </Modal>
+        <Searchbar onSubmit={this.handleSubmit} />
+        {isNotEmpty && <ImageGallery hits={hits} />}
+        {isLoading ? (
+          <Loader />
+        ) : (
+          isNotEmpty &&
+          isNotEndList && <Button onLoadMore={this.handleLoadMore} />
         )}
       </Container>
     );

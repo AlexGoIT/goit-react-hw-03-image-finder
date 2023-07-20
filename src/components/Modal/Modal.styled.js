@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const Backdrop = styled.div`
+export const Overlay = styled.div`
   position: fixed;
   top: 0;
   left: 0;
@@ -10,10 +10,12 @@ export const Backdrop = styled.div`
   justify-content: center;
   align-items: center;
   background-color: rgba(0, 0, 0, 0.8);
-  z-index: 1200;
 `;
 
-export const ModalContainer = styled.div`
+export const ModalContainer = styled.div``;
+
+export const Image = styled.img`
   max-width: calc(100vw - 48px);
   max-height: calc(100vh - 24px);
+  object-fit: contain;
 `;
