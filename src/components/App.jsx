@@ -7,7 +7,7 @@ import ImageGallery from './ImageGallery';
 import Loader from './Loader';
 import Button from './Button';
 
-import ImageAPI from './services/api';
+import ImageAPI from 'services/api';
 const imageAPI = new ImageAPI();
 
 document.title = 'HW-3 Finder';
