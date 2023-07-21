@@ -38,6 +38,13 @@ export default class App extends Component {
 
       const totalPages = Math.floor(response.totalHits / 12);
 
+      if (response.hits.length === 0) {
+        Notify.warning(
+          'Sorry, there are no images matching your search query. Please try again.'
+        );
+        return;
+      }
+
       this.setState(({ hits }) => ({
         hits: [...hits, ...response.hits],
         page,
