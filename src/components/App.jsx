@@ -7,8 +7,7 @@ import ImageGallery from './ImageGallery';
 import Loader from './Loader';
 import Button from './Button';
 
-import ImageAPI from 'services/api';
-const imageAPI = new ImageAPI();
+import getImages from 'services/api';
 
 document.title = 'HW-3 Finder';
 
@@ -34,7 +33,7 @@ export default class App extends Component {
 
     this.setState({ isLoading: true });
     try {
-      const response = await imageAPI.getImages(searchQuery, page);
+      const response = await getImages(searchQuery, page);
 
       const totalPages = Math.floor(response.totalHits / 12);
 
