@@ -15,5 +15,12 @@ const ImageList = ({ hits }) => {
 export default ImageList;
 
 ImageList.propTypes = {
-  hits: PropTypes.array.isRequired,
+  hits: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      webformatURL: PropTypes.string.isRequired,
+      tags: PropTypes.string.isRequired,
+      largeImageURL: PropTypes.string.isRequired,
+    }).isRequired
+  ),
 };
