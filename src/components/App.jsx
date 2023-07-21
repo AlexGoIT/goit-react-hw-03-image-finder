@@ -16,86 +16,75 @@ export default class App extends Component {
   state = {
     hits: [],
     page: 1,
-    totalPages: 1,
-    searchQuery: null,
+    searchQuery: '',
     isLoading: false,
     showLoadMoreBtn: false,
   };
 
-  async componentDidUpdate(_, prevState) {
-    const { searchQuery, page, totalPages, hits } = this.state;
+  componentDidUpdate(_, prevState) {
+    const { searchQuery, page } = this.state;
 
-    if (prevState.page !== page && page !== 1) {
-      this.setState({ isLoading: true });
-
-      const response = await imageAPI.getImages(searchQuery, page);
-
-      this.setState(({ hits }) => ({
-        hits: [...hits, ...response.hits],
-        isLoading: false,
-      }));
-
-      setTimeout(() => this.scroll(), 100);
-    }
-
-    if (page >= totalPages && hits !== prevState.hits) {
-      Notify.warning(
-        "We're sorry, but you've reached the end of search results."
-      );
-
-      this.setState({ showLoadMoreBtn: false });
+    if (prevState.searchQuery !== searchQuery || page !== prevState.page) {
+      this.fetchImages();
     }
   }
 
-  handleSearchQuery = searchQuery => {
-    this.setState({ searchQuery, page: 1 });
+  fetchImages = async () => {
+    const { searchQuery, page } = this.state;
+
+    this.setState({ isLoading: true });
+    try {
+      const response = await imageAPI.getImages(searchQuery, page);
+
+      const totalPages = Math.floor(response.totalHits / 12);
+
+      this.setState(({ hits }) => ({
+        hits: [...hits, ...response.hits],
+        page,
+        totalPages,
+      }));
+
+      if (page === 1) {
+        Notify.success(`Hooray! We found ${response.totalHits} images.`);
+      } else {
+        setTimeout(() => this.scroll(), 100);
+      }
+
+      if (page >= totalPages) {
+        Notify.warning(
+          "We're sorry, but you've reached the end of search results."
+        );
+      }
+    } catch (err) {
+      Notify.failure(`Oops, something went wrong: ${err.message}`);
+    } finally {
+      this.setState({ isLoading: false });
+    }
   };
 
-  handleLoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
-  };
+  handleSubmit = evt => {
+    evt.preventDefault();
 
-  handleSubmit = async e => {
-    e.preventDefault();
-
-    const { queryInput } = e.target.elements;
+    const { queryInput } = evt.target.elements;
 
     const searchQuery = queryInput.value.trim();
     queryInput.value = '';
     const page = 1;
 
     if (searchQuery === '') {
-      Notify.warning("You didn't enter anything!");
-      return;
-    }
-
-    this.setState({ isLoading: true });
-    const response = await imageAPI.getImages(searchQuery, page);
-    this.setState({ isLoading: false });
-
-    if (response.hits.length === 0) {
       Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
       return;
-    } else {
-      Notify.success(`"Hooray! We found ${response.totalHits} images."`);
     }
 
-    const totalPages = Math.floor(response.totalHits / 12);
+    this.setState({ searchQuery, page, hits: [] });
+  };
 
-    if (totalPages > 1) {
-      this.setState({ showLoadMoreBtn: true });
-    }
-
-    this.setState({
-      hits: response.hits,
-      searchQuery,
-      page,
-      totalPages,
-    });
+  handleLoadMore = () => {
+    this.setState(prevState => ({
+      page: prevState.page + 1,
+    }));
   };
 
   scroll = () => {
