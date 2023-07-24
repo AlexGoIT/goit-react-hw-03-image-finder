@@ -1,7 +1,8 @@
 import { Component } from 'react';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import Container from '@mui/material/Container';
 
-import { Container } from './App.styled';
+// import { Container } from './App.styled';
 import Searchbar from './Searchbar';
 import ImageGallery from './ImageGallery';
 import Loader from './Loader';
@@ -107,16 +108,18 @@ export default class App extends Component {
     const isNotEndList = page < totalPages;
 
     return (
-      <Container>
+      <>
         <Searchbar onSubmit={this.handleSubmit} />
-        {isNotEmpty && <ImageGallery hits={hits} />}
-        {isLoading ? (
-          <Loader />
-        ) : (
-          isNotEmpty &&
-          isNotEndList && <Button onLoadMore={this.handleLoadMore} />
-        )}
-      </Container>
+        <Container maxWidth="xl" sx={{ mt: 2 }}>
+          {isNotEmpty && <ImageGallery hits={hits} />}
+          {isLoading ? (
+            <Loader />
+          ) : (
+            isNotEmpty &&
+            isNotEndList && <Button onLoadMore={this.handleLoadMore} />
+          )}
+        </Container>
+      </>
     );
   }
 }
