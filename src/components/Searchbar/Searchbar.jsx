@@ -1,32 +1,38 @@
 import { BiSearchAlt } from 'react-icons/bi';
 import PropTypes from 'prop-types';
+import AppBar from '@mui/material/AppBar';
+import IconButton from '@mui/material/IconButton';
+import InputBase from '@mui/material/InputBase';
 
-import {
-  Header,
-  SearchForm,
-  SearchFormButton,
-  SearchFormLabel,
-  SearchFormInput,
-} from './Searchbar.styled';
+import { SearchForm } from './Searchbar.styled';
 
 const Searchbar = ({ onSubmit }) => {
   return (
-    <Header>
+    <AppBar
+      position="sticky"
+      sx={{
+        height: '64px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
       <SearchForm onSubmit={onSubmit}>
-        <SearchFormButton type="submit">
-          <BiSearchAlt className="react-icon" />
-          <SearchFormLabel>Search</SearchFormLabel>
-        </SearchFormButton>
+        <IconButton aria-label="search" type="submit">
+          <BiSearchAlt />
+        </IconButton>
 
-        <SearchFormInput
+        <InputBase
+          sx={{ paddingInline: 1 }}
+          placeholder="Search images and photos"
+          inputProps={{ 'aria-label': 'Search images and photos' }}
           type="text"
           autoComplete="off"
           autoFocus
-          placeholder="Search images and photos"
           name="queryInput"
         />
       </SearchForm>
-    </Header>
+    </AppBar>
   );
 };
 
